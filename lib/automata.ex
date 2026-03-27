@@ -1,4 +1,6 @@
 defmodule Automata do
 
 
+
+
 end
