@@ -1,21 +1,15 @@
 # Automata
 
-**TODO: Add description**
+Provides Autonoma.determinize/1 to convert a Non Deterministic Automaton to a Deterministic Automaton, both represented as a 5-touple containing {Q, Sigma, Delta, q0, F}.
 
-## Installation
+Delta is the graph representation of the automaton as a Map with the following pattern:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `automata` to your list of dependencies in `mix.exs`:
+%{
+  k1 => %{x1: MapSet.new([states]), x2: MapSet,new([states]), ...},
+  k2 => ...
+  ...
+}
 
-```elixir
-def deps do
-  [
-    {:automata, "~> 0.1.0"}
-  ]
-end
-```
+It implements a custom powerset alogrithm to calulate Q'.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/automata>.
-
+The module Automata.Write implements automata_to_graph/3 that generates the graphviz code for representing the given automaton graphically.
