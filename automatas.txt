@@ -1,0 +1,23 @@
+# Regex.match?(~r/^[[:upper:]][[:upper:][:digit:]_]*$/, "FA643G")
+# File.read!("automatas.txt") |> String.split(~r/\n|\s{2,}|#.*/, trim: true)
+
+NFA_A
+delta:
+0 => a: 0, 1; b: 0;
+1 => b: 2;
+2 => b: 3;
+3 => 
+alphabet:
+a, b
+accepted:
+3
+    
+NFA_B
+delta:
+q0 => b: q1; epsilon: q2;
+q1 => a: q1, q2; b: q2;
+q2 => a: q0;
+alphabet:
+a, b
+accepted:
+q0
