@@ -258,3 +258,82 @@ defmodule Automata.Write do
   end
 
 end
+
+# TODO terminar parding functions
+defmodule Automata.Read do
+
+  def is_state_or_letter?(str), do: Regex.match?(~r/^[[:alnum:]]+$/, str)
+  def is_name?(str), do: Regex.match?(~r/^[[:upper:]][[:upper:][:digit:]_]*$/, str)
+  def is_state_value(str), do:  Regex.match?(~r/^[[:alnum:]]:\s*[[:alnum:]]+(?:,\s*[[:alnum:]]+)*$/, str)
+
+  def parse_name(str) do
+    if is_name?(str) do
+      String.to_atom(str)
+    else
+      nil
+    end
+  end
+
+  def parse_delta_key(str) do
+    if is_state_or_letter?(str) do
+      if Regex.match?(~r/^[[:digit:]]+$/, str) do
+        String.to_integer(str)
+      else
+        String.to_atom(str)
+      end
+    else
+      nil
+    end
+  end
+
+  def parse_delta_value(str) do
+    if is_state_value(str) do
+
+    end
+  end
+
+
+  def parse_delta_entry(str) do
+  end
+
+  def update_t_value(map, key, value, which) do
+    %{map | key => t_update(map[key], value, which)}
+  end
+
+  def t_update(tuple, value, which) do
+    {q, al, d, q0, f} = tuple
+    cond do
+      which == :Q -> {value, al, d, q0, f}
+      which == :al -> {q, value, d, q0, f}
+      which == :D -> {q, al, value, q0, f}
+      which == :q0 -> {q, al, d, value, f}
+      which == :f -> {q, al, d, q0, value}
+    end
+  end
+
+  def add_key(map, key) do
+    map |> Map.put(key, {MapSet.new, MapSet.new, %{}, MapSet.new, MapSet.new})
+  end
+
+  def separate_automatas(str) do
+    Regex.split(~r/#.*|name:\s*/, str, trim: true) |> Enum.filter(fn x -> !Regex.match?(~r/^\s+/, x) end)
+  end
+  def get_lines(str) do
+    str |> String.split(~r/\n|\s{2,}|#.*/, trim: true)
+  end
+
+  def keywords do
+    %{
+      "delta:" => :delta,
+      "alphabet:" => :alphabet,
+      "accepted:" => :accepted
+    }
+  end
+
+  def symbols do
+    %{
+      "=>" => :bind_value
+    }
+  end
+
+end
