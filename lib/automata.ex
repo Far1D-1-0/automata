@@ -124,7 +124,14 @@ defmodule Automata do
   def e_closure(_delta, %{map: m, __struct__: _s}) when m == %{}, do: MapSet.new
   def e_closure(_delta, []), do: MapSet.new
   def e_closure(delta, states) do
-    prime_transition(delta, states, :epsilon) |> MapSet.union(states)
+    e_closure_helper(delta, states, states)
+    # prime_transition(delta, states, :epsilon) |> MapSet.union(states)
+  end
+
+  def e_closure_helper(_delta, %{map: m, __struct__: _s}, acc) when m == %{}, do: acc
+  def e_closure_helper(delta, current, acc) do
+    sts = prime_transition(delta, current, :epsilon)
+    e_closure_helper(delta, sts, MapSet.union(acc, sts))
   end
 
   def prime_accept(powerset, accepted_states) do
@@ -151,7 +158,7 @@ defmodule Automata do
     q0_prime = MapSet.new([q0])
     f_prime = q_prime |> prime_accept(f)
 
-    {q_prime, al_prime, d_prime, q0_prime, f_prime}
+    {q_prime, al_prime, d_prime, q0_prime, f_prime} |> prune
   end
 
   def e_determinize({q, al, d, q0, f}) do
@@ -161,7 +168,7 @@ defmodule Automata do
     q0_prime = MapSet.new([e_closure(d, q0)])
     f_prime = q_prime |> prime_accept(f)
 
-    {q_prime, al_prime, d_prime, q0_prime, f_prime}
+    {q_prime, al_prime, d_prime, q0_prime, f_prime} |> prune
   end
 
   def drop_alphabet(delta) do
