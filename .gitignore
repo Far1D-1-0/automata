@@ -24,3 +24,6 @@ automata-*.tar
 
 # ignore graphviz generated code
 *.dot
+
+# Ignore .png files
+*.png

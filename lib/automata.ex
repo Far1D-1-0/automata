@@ -134,6 +134,42 @@ defmodule Automata do
     e_closure_helper(delta, sts, MapSet.union(acc, sts))
   end
 
+  def prime_transitions(delta, rr, al) do
+    t = Enum.map(al, fn x -> {x, e_closure(delta, prime_transition(delta, rr, x)) |> bdd_helper} end) |> Enum.filter(fn {_x, s} -> !MapSet.equal?(s, MapSet.new()) end) |> Map.new
+    {rr, t}
+  end
+
+  def e_build_dfa_delta2(_delta, _alphabet, new_delta, [], _visited), do: new_delta
+  def e_build_dfa_delta2(delta, alphabet, new_delta, [node | rest], visited) do
+    if MapSet.member?(visited, node) do
+      e_build_dfa_delta2(delta, alphabet, new_delta, rest, visited)
+    else
+      {dk, dv} = prime_transitions(delta, node, alphabet)
+      nd = Map.put(new_delta, dk, dv)
+      neighbors = dv |> Map.values() |> Enum.map(fn n -> n |> MapSet.to_list |> hd end)
+      e_build_dfa_delta2(delta, alphabet, nd, neighbors ++ rest, MapSet.put(visited, node))
+    end
+  end
+
+  def e_determinize2({_q, al, d, q0, f}) do
+
+    al_prime = MapSet.delete(al, :epsilon)
+    q0_prime = MapSet.new([e_closure(d, q0)])
+    d_prime = e_build_dfa_delta2(d, al_prime, %{}, q0_prime |> MapSet.to_list, MapSet.new())
+    q_prime = d_prime |> Map.keys() |> MapSet.new
+    f_prime = q_prime |> prime_accept(f)
+
+    # q_prime = q |> power_set
+    # al_prime = MapSet.delete(al, :epsilon)
+    # d_prime = q_prime |> e_build_dfa_delta(al_prime, d)
+    # q0_prime = MapSet.new([e_closure(d, q0)])
+    # f_prime = q_prime |> prime_accept(f)
+
+    # {q_prime, al_prime, d_prime, q0_prime, f_prime} |> prune
+    {q_prime, al_prime, d_prime, q0_prime, f_prime}
+  end
+
+
   def prime_accept(powerset, accepted_states) do
     powerset
     |> Enum.filter(fn rr -> !MapSet.disjoint?(rr, accepted_states) end) |> MapSet.new()
@@ -169,6 +205,17 @@ defmodule Automata do
     f_prime = q_prime |> prime_accept(f)
 
     {q_prime, al_prime, d_prime, q0_prime, f_prime} |> prune
+    # {q_prime, al_prime, d_prime, q0_prime, f_prime}
+  end
+
+  def e_determinize_noprune({q, al, d, q0, f}) do
+    q_prime = q |> power_set
+    al_prime = MapSet.delete(al, :epsilon)
+    d_prime = q_prime |> e_build_dfa_delta(al_prime, d)
+    q0_prime = MapSet.new([e_closure(d, q0)])
+    f_prime = q_prime |> prime_accept(f)
+
+    {q_prime, al_prime, d_prime, q0_prime, f_prime}
   end
 
   def drop_alphabet(delta) do
